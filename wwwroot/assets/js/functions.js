@@ -1,4 +1,4 @@
-alert('function.js');
+
 document.addEventListener('DOMContentLoaded', _ => {
     const topNav = document.getElementsByClassName('topnav')[0];
     if (topNav) {

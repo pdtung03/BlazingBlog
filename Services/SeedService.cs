@@ -1,13 +1,14 @@
 ﻿using BlazingBlog.Data;
 using BlazingBlog.Data.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazingBlog.Services
 {
 	internal static class AdminAccount
 	{
-		public const string Name = "Phan Tung";
+		public const string Name = "PhanTung";
 		public const string Email = "phanductung03@gmail.com";
 		public const string Role = "Admin";
 		public const string Password = "P@ssword123";
@@ -33,8 +34,19 @@ namespace BlazingBlog.Services
 			_userManager = userManager;
 			_roleManager = roleManager;
 		}
+
+		private async Task MigrateDatabaseAsync()
+		{
+#if DEBUG
+			if ((await _context.Database.GetPendingMigrationsAsync()).Any())
+			{
+				await _context.Database.MigrateAsync();
+			}
+#endif
+		}
 		public async Task SeedDataAsync()
 		{
+			await MigrateDatabaseAsync();
 			//Seed AdminRole
 
 			if (await _roleManager.FindByNameAsync(AdminAccount.Role) == null)
@@ -61,7 +73,10 @@ namespace BlazingBlog.Services
 
 				adminUser.Name = AdminAccount.Name;
 
-				await _userStore.SetUserNameAsync(adminUser, AdminAccount.Name, CancellationToken.None);
+				await _userStore.SetUserNameAsync(adminUser, AdminAccount.Email, CancellationToken.None);
+
+				var emailStore = (IUserEmailStore<ApplicationUser>)_userStore;
+				await emailStore.SetEmailAsync(adminUser, AdminAccount.Email, CancellationToken.None);
 
 				var result = await _userManager.CreateAsync(adminUser, AdminAccount.Password);
 				if (!result.Succeeded)

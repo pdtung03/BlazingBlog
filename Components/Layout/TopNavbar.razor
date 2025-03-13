@@ -32,16 +32,10 @@
 			<AuthorizeView>
 				<Authorized>
 					<li class="nav-item">
-						<a class="nav-link" href="/">@context.User.Identity!.Name</a>
+						<a class="nav-link" href="admin/dashboard">@context.User.GetUserName()</a>
 					</li>
 					<li class="nav-item highlight">
-						<form action="Account/Logout" method="post">
-							<AntiforgeryToken />
-							<input type="hidden" name="ReturnUrl" value="@redirectUrl" />
-							<button type="submit" class="nav-link">
-								<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-							</button>
-						</form>
+						<LogoutForm ButtonClasses="nav-link"></LogoutForm>
 					</li>
 				</Authorized>
 				<NotAuthorized>
@@ -56,9 +50,5 @@
 </div>
 </nav>
 @code {
-	string redirectUrl = string.Empty;
-	protected override void OnInitialized()
-    {
-        redirectUrl = NavigationManager.ToBaseRelativePath(NavigationManager.BaseUri);
-    }
+
 }

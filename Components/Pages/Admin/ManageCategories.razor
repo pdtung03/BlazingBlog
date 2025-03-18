@@ -1,0 +1,60 @@
+﻿@page "/admin/manage-categories"
+@using BlazingBlog.Data.Entities
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@rendermode @(new InteractiveServerRenderMode(prerender :false))
+
+@inject ICategoryService CategoryService
+
+<AdminHeader Title="Manage Categories">
+    <ActionButtons>
+        <button type="button" class="btn btn-primary btn-sm">+ Add new category</button>
+    </ActionButtons>
+</AdminHeader>
+
+<div class="row">
+    <div class="col-sm-6"></div>
+    <div class="col-sm-6">
+        <EditForm>
+
+        </EditForm>
+    </div>
+</div>
+
+<QuickGrid Items="@_categories" class="table table-bordered table-striped table-hover">
+    <PropertyColumn  Property="@(c=>c.Id)"></PropertyColumn>
+    <PropertyColumn  Property="@(c=>c.Name)"></PropertyColumn>
+    <PropertyColumn  Property="@(c=>c.Slug)"></PropertyColumn>
+    <TemplateColumn Title="Show on Navbar">
+        @if(context.ShowOnNavbar)
+        {
+            <label class="text-success">
+                <input type="checkbox" @onchange="@(()=> HandleShowOnNavbarChanged(context))" checked />Yes
+            </label>
+        }
+        else
+        {
+            <label class="text-danger">
+                <input type="checkbox" @onchange="@(()=> HandleShowOnNavbarChanged(context))" />No
+            </label>
+        }
+    </TemplateColumn>
+    <TemplateColumn>
+        <button type="button" class="btn btn-sm btn-primary">Edit</button>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private Category? _operatingCategory;
+    private IQueryable<Category> _categories = Enumerable.Empty<Category>().AsQueryable();
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = (await CategoryService.GetCategoriesAsync()).AsQueryable();
+    }
+
+    private async Task HandleShowOnNavbarChanged(Category category)
+    {
+        category.ShowOnNavbar = !category.ShowOnNavbar;
+        await CategoryService.SaveCategoriyAsync(category);
+    }
+}

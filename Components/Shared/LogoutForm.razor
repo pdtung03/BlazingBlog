@@ -8,9 +8,9 @@
 </form>
 
 @code {
-        [Parameter,EditorRequired]
-        public string ButtonClasses { get; set; } 
-        string redirectUrl = string.Empty;
+    [Parameter, EditorRequired]
+    public string ButtonClasses { get; set; } = "";
+    string redirectUrl = string.Empty;
         protected override void OnInitialized()
         {
             redirectUrl = NavigationManager.ToBaseRelativePath(NavigationManager.BaseUri);

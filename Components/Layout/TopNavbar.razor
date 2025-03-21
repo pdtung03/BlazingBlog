@@ -1,4 +1,5 @@
-﻿
+﻿@using BlazingBlog.Data.Entities
+@inject ICategoryService CategoryService
 
 <nav class="topnav navbar navbar-expand-lg navbar-light bg-white fixed-top">
 <div class="container">
@@ -12,21 +13,12 @@
 			<li class="nav-item">
 			<a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
 			</li>
-			<li class="nav-item">
-			<a class="nav-link" href="category">Culture</a>
-			</li>
-			<li class="nav-item">
-			<a class="nav-link" href="category">Tech</a>
-			</li>
-			<li class="nav-item">
-			<a class="nav-link" href="category">Politics</a>
-			</li>
-			<li class="nav-item">
-			<a class="nav-link" href="category">Health</a>
-			</li>
-			<li class="nav-item">
-			<a class="nav-link" href="category">Collections</a>
-			</li>            
+			@foreach(var c in _categories)
+			{
+					<li class="nav-item">
+						<a class="nav-link" href="category">@c.Name</a>
+					</li>
+			}
 		</ul>
 		<ul class="navbar-nav ml-auto d-flex align-items-center">		
 			<AuthorizeView>
@@ -50,5 +42,22 @@
 </div>
 </nav>
 @code {
+	private Category[] _categories = [];
 
+	private const int MaxCategoreisToShowOnNavbar = 5;
+	protected override async Task OnInitializedAsync()
+	{
+		var categories = await CategoryService.GetCategoriesAsync();
+
+		_categories = categories.Where(categories=> categories.ShowOnNavbar)	
+															.Take(5)
+															.ToArray();
+
+		if(_categories.Length < MaxCategoreisToShowOnNavbar)
+		{
+			_categories = [.. _categories, .. categories.Where(c => !c.ShowOnNavbar).Take(MaxCategoreisToShowOnNavbar - _categories.Length)];
+
+		}
+
+	}
 }

@@ -14,6 +14,8 @@ namespace BlazingBlog.Data.Entities
 
 		public bool ShowOnNavbar { get; set; }
 
+		public Category Clone() => (MemberwiseClone() as Category)!;
+
 		public static Category[] GetSeedCategories()
 		{
 			return [

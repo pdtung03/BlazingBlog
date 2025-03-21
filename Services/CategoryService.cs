@@ -9,7 +9,7 @@ namespace BlazingBlog.Services
     {
         Task<Category[]> GetCategoriesAsync();
         Task<Category?> GetCategoryBySlugAsync(string slug);
-        Task<Category> SaveCategoriyAsync(Category category);
+        Task<Category> SaveCategoryAsync(Category category);
     }
 
     public class CategoryService : ICategoryService
@@ -39,7 +39,7 @@ namespace BlazingBlog.Services
 
         }
 
-        public async Task<Category> SaveCategoriyAsync(Category category)
+        public async Task<Category> SaveCategoryAsync(Category category)
         {
             return await ExecuteOnContext(async context =>
             {

@@ -39,7 +39,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 builder.Services.AddTransient<ISeedService, SeedService>()
-                .AddTransient<ICategoryService, CategoryService>();
+                .AddTransient<ICategoryService, CategoryService>()
+                .AddTransient<IBlogPostAdminService, BlogPostAdminService>();
 
 var app = builder.Build();
 
@@ -72,7 +73,14 @@ app.Run();
 
 static async Task SeedAsync(IServiceProvider services)
 {
-    var scope = services.CreateScope();
-	var seedService = scope.ServiceProvider.GetRequiredService<ISeedService>();
-    await seedService.SeedDataAsync();
+    using var scope = services.CreateScope();
+    try
+    {
+        var seedService = scope.ServiceProvider.GetRequiredService<ISeedService>();
+        await seedService.SeedDataAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error during database seeding: {ex.Message}");
+    }
 }

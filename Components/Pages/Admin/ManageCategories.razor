@@ -86,7 +86,7 @@
 
     private async Task HandleShowOnNavbarChanged(Category category)
     {
-        _loadingText = "Saving changes...";
+        _loadingText = "Saving changes";
         _isLoading = true;
         category.ShowOnNavbar = !category.ShowOnNavbar;
         await CategoryService.SaveCategoryAsync(category);
@@ -100,7 +100,7 @@
     {
         if(_operatingCategory is not null)
         {
-            _loadingText = "Saving changes...";
+            _loadingText = "Saving changes";
             _isLoading = true;
             await CategoryService.SaveCategoryAsync(_operatingCategory);
             _operatingCategory = null;

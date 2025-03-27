@@ -1,0 +1,128 @@
+﻿@page "/admin/manage-blog-posts"
+@using BlazingBlog.Data.Entities
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@rendermode @(new InteractiveServerRenderMode(prerender :false))
+
+@inject IBlogPostAdminService BlogPostService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<AdminHeader Title="Manage Blog Posts" >
+    <ActionButtons>
+        <a href="admin/manage-blog-posts/new" class="btn btn-primary btn-sm" data-enhance-nav="false">+ Add new Blog Post</a>
+    </ActionButtons>
+</AdminHeader>
+
+@if (_isLoading)
+{
+    <Loader LoaderText="@_loadingText"></Loader>
+}
+
+<QuickGrid ItemsProvider="_blogPostsProvider" Pagination="_paginationState" class="table table-bordered table-striped table-hover">
+    <PropertyColumn Property="@(b=>b.Id)"></PropertyColumn>
+    <TemplateColumn>
+        <div class="py-2" style=" display: grid;grid-template-columns:60px auto;grid-column-gap: 10px">
+            <img src="@context.Image" style="height:60px;width: 60px;object-fit cover" />
+            <div>
+                <label class="mb-0 d-block">@context.Title</label>
+                @if(context.isPublished)
+                {
+                    <a href="/details" target="_blank">@context.Slug</a>
+                }
+                else
+                {
+                    <label>@context.Slug</label>
+                }
+            </div>
+        </div>
+    </TemplateColumn>
+    <PropertyColumn Property="@(b=>b.Category.Name)" Title="Category"></PropertyColumn>
+    <TemplateColumn Title="Featured">
+        @if (context.isFeatured)
+        {
+            <label class="text-success">
+                <input type="checkbox" @onchange="@(()=> HandleFeaturedChange(context))" checked />Yes
+            </label>
+        }
+        else
+        {
+            <label class="text-danger">
+                <input type="checkbox" @onchange="@(()=> HandleFeaturedChange(context))" />No
+            </label>
+        }
+    </TemplateColumn>
+    <TemplateColumn Title="Published">
+        @if (context.isPublished)
+        {
+            <label class="text-success">
+                <input type="checkbox" @onchange="@(()=> HandlePublishedChange(context))" checked />Yes
+            </label>
+        }
+        else
+        {
+            <label class="text-danger">
+                <input type="checkbox" @onchange="@(()=> HandlePublishedChange(context))" />No
+            </label>
+        }
+    </TemplateColumn>
+    <TemplateColumn>
+        <a href="admin/manage-blog-posts/edit/@context.Id" data-enhance-nav="false" class="btn btn-sm btn-primary">Edit</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="_paginationState"></Paginator>
+
+<style type="text/css">
+    .table > tbody > tr > td{
+        vertical-align: middle;
+    }    
+</style>
+@code {
+    private bool _isLoading;
+    private string? _loadingText;
+
+    private const int PageSize = 10;
+
+    private PaginationState _paginationState = new PaginationState
+        {
+            ItemsPerPage = PageSize
+        };
+
+    private GridItemsProvider<BlogPost> _blogPostsProvider;
+    protected override async Task OnInitializedAsync()
+    {
+        _blogPostsProvider = async request =>
+        {
+            _isLoading = true;
+            _loadingText = "Fetching blog posts";
+
+            StateHasChanged();
+            PagedResult<BlogPost> pagedBlogs = await BlogPostService.GetBlogPostsAsync(request.StartIndex, request.Count ?? PageSize);
+
+            _isLoading = false;
+            StateHasChanged();
+            return GridItemsProviderResult.From(pagedBlogs.Records, pagedBlogs.TotalCount);
+        };
+    }
+    private async Task HandleFeaturedChange(BlogPost blogPost)
+    {
+        blogPost.isFeatured = !blogPost.isFeatured;
+        await SaveChangesAsync(blogPost);
+    }
+    private async Task HandlePublishedChange(BlogPost blogPost)
+    {
+        blogPost.isPublished = !blogPost.isPublished;
+        await SaveChangesAsync(blogPost);
+    }
+    private async Task SaveChangesAsync(BlogPost blogPost)
+    {
+        _loadingText = "Saving changes";
+        _isLoading = true;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.GetUserId();
+
+        await BlogPostService.SaveBlogPostAsync(blogPost,userId);
+        _isLoading = false;
+    }
+}

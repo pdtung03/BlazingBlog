@@ -1,0 +1,99 @@
+﻿@page "/{categorySlug}-posts/all"
+@page "/{categorySlug}-posts/all/page-{UrlPageNumber:int}"
+@using BlazingBlog.Data.Entities
+
+@inject NavigationManager NavigationManager
+@inject IBlogPostService BlogPostService
+@inject ICategoryService CategoryService
+
+<PageTitle>@Utils.GetPageTitle(@PageTitle)</PageTitle>
+
+<div class="container mt-5 mb-5">
+	<div class="row">
+		<div class="col-md-8">
+
+			<h5 class="font-weight-bold spanborder"><span>@PageTitle</span></h5>
+			<BlogPostsList Posts="_posts"></BlogPostsList>
+			<hr />
+			<div class="d-flex justify-content-between">
+				@if(_pageNumber > 1)
+				{
+					var prevPageUrl = $"{CategorySlug}-posts/all";
+					if(_pageNumber > 2)
+					{
+						prevPageUrl += $"/page-{_pageNumber - 1}";
+					}
+					<a href="@prevPageUrl" class="btn btn-sm btn-outline-primary" style="margin-bottom: 1rem;">Previous Page</a>
+				}
+				else
+				{
+					<span>&nbsp;</span>
+				}
+
+				@if (_posts.Length == pageSize)
+				{
+					<a href="@CategorySlug-posts/all/page-@(_pageNumber+1)" class="btn btn-sm btn-outline-primary" style="margin-bottom: 1rem;">Next Page</a>
+				}
+			</div>
+			<hr />
+		</div>
+		<div class="col-md-4 pl-4">
+			<div class="sticky-top">
+				<h5 class="font-weight-bold spanborder"><span>Popular in @_category?.Name </span></h5>
+				<PopularBlogPostsList Posts="_popular"></PopularBlogPostsList>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container pt-4 pb-4">
+	<SubscrieBox></SubscrieBox>
+</div>
+
+@code {
+	[Parameter]
+	public string CategorySlug { get; set; }
+
+	[Parameter]
+	public int? UrlPageNumber { get; set; }
+
+	private Category _category;
+
+	private BlogPost[] _posts = [];
+	private BlogPost[] _popular = [];
+
+	private int _pageNumber = 1;
+	private const int pageSize = 2;
+
+	private string PageTitle => $"{_category?.Name} Posts {(_pageNumber > 1 ? $"(Page - {_pageNumber})" : "")}";
+
+	protected override async Task OnInitializedAsync()
+	{
+		if(UrlPageNumber.HasValue)
+		{
+			if(UrlPageNumber < 2)
+			{
+				NavigationManager.NavigateTo("{CategorySlug}-posts/all", replace: true);
+				return;
+			}
+			_pageNumber = UrlPageNumber.Value;
+		}
+
+		var category = await CategoryService.GetCategoryBySlugAsync(CategorySlug);
+		if (category is null)
+		{
+			NavigationManager.NavigateTo("/", replace: true);
+			return;
+		}
+
+		_category = category;
+
+		var posts = await Task.WhenAll(
+				BlogPostService.GetPopularBlogPostsAsync(5, _category.Id),
+				BlogPostService.GetBlogPostAsync(_pageNumber - 1, pageSize, _category.Id)
+		);
+		_popular = posts[0];
+		_posts = posts[1];
+
+	}
+}

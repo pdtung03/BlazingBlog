@@ -22,5 +22,8 @@ namespace BlazingBlog
 
         [GeneratedRegex(@"[^0-9a-z_]")]
         private static partial Regex SlugRegex();
+
+
+        public static string toDisplay(this DateTime? dateTime) => dateTime?.ToString("MMM dd") ?? string.Empty;
     }
 }

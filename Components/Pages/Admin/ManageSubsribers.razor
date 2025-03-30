@@ -1,0 +1,47 @@
+﻿@page "/admin/manage-subscribers"
+
+@using BlazingBlog.Data.Entities
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+@inject ISubsribeService SubsriberService
+
+<PageTitle>@Utils.GetPageTitle("Manage Subscribers")</PageTitle>
+
+@if(_isLoading)
+{
+    <Loader LoaderText="Fetching subscribers"></Loader>
+}
+
+<QuickGrid ItemsProvider="_subcriberProvider" Pagination="_paginationState" class="table table-bordered table-striped">
+    <PropertyColumn Property="c=>c.Name"></PropertyColumn>
+    <PropertyColumn Property="c=>c.Email"></PropertyColumn>
+    <PropertyColumn Property="c=>c.SubscribedOn" Format="MMM-dd-yyyy hh:mm:ss" Title="Subscribe On"></PropertyColumn>
+</QuickGrid>
+<Paginator State="_paginationState"></Paginator>
+@code {
+    private bool _isLoading;
+    private GridItemsProvider<Subscriber>? _subcriberProvider;
+
+    private const int PageSize = 2;
+    private PaginationState _paginationState = new()
+        {
+            ItemsPerPage = PageSize
+        };
+
+    protected override void OnInitialized()
+    {
+        _subcriberProvider = async request =>
+        {
+            _isLoading = true;
+            StateHasChanged();
+
+            var result = await SubsriberService.GetSubscribersAsync(request.StartIndex, request.Count ?? PageSize);
+
+            _isLoading = false;
+            StateHasChanged();
+            return GridItemsProviderResult.From(result.Records, result.TotalCount);
+        };
+    }
+}

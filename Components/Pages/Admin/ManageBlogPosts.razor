@@ -7,6 +7,8 @@
 @inject IBlogPostAdminService BlogPostService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
+<PageTitle>@Utils.GetPageTitle("Manage Blog Posts")</PageTitle>
+
 <AdminHeader Title="Manage Blog Posts" >
     <ActionButtons>
         <a href="admin/manage-blog-posts/new" class="btn btn-primary btn-sm" data-enhance-nav="false">+ Add new Blog Post</a>
@@ -27,7 +29,7 @@
                 <label class="mb-0 d-block">@context.Title</label>
                 @if(context.isPublished)
                 {
-                    <a href="/details" target="_blank">@context.Slug</a>
+                    <a href="/posts/@context.Slug" target="_blank">@context.Slug</a>
                 }
                 else
                 {

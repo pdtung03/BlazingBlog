@@ -7,6 +7,8 @@
 @inject ICategoryService CategoryService
 @inject NavigationManager NavigationManager
 
+<PageTitle>@Utils.GetPageTitle("Manage Categories")</PageTitle>
+
 <AdminHeader Title="Manage Categories">
     <ActionButtons>
         <button type="button" class="btn btn-primary btn-sm" @onclick="() =>_operatingCategory = new()">+ Add new category</button>
